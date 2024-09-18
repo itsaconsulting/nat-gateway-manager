@@ -1,7 +1,7 @@
 require 'aws-sdk-ec2'
 require 'logger'
     
-$client = Aws::Ec2::Client.new()
+$client = Aws::EC2::Client.new()
 $client.get_account_settings()
       
 def lambda_handler(event:, context:)
