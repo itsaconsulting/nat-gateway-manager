@@ -1,6 +1,6 @@
 version: 0.0 
 Resources:
-  - LAMBDA_FUNCTION_NAME
+  - LAMBDA_FUNCTION_NAME:
       Type: AWS::Lambda::Function
       Properties:
         Name: "LAMBDA_FUNCTION_NAME"
