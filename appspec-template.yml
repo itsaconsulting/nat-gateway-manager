@@ -7,3 +7,6 @@ Resources:
         Alias: "LAMBDA_FUNCTION_ALIAS"
         CurrentVersion: "CURRENT_VERSION"
         TargetVersion: "TARGET_VERSION"
+Hooks:
+  - BeforeAllowTraffic: "eip_update"
+  - AfterAllowTraffic: "eip_update"
