@@ -2,6 +2,7 @@ require 'aws-sdk-ec2'
 require 'logger'
     
 $client = Aws::EC2::Client.new()
+$codedeploy_client = Aws::CodeDeploy::Client.new()
  
 def lambda_handler(event:, context:)
   logger = Logger.new($stdout)
@@ -10,6 +11,10 @@ def lambda_handler(event:, context:)
   logger.info('## EVENT')
   logger.info(event)
   event.to_a
+
+  unless event.DeploymentId?nil
+    report_deployment_status(event)
+  end
 
   # determine event type:  scale out, scale in
 
@@ -23,6 +28,19 @@ def lambda_handler(event:, context:)
 
 end
 
+
+def report_deployment_status(event)
+
+  deployment_id = event.DeploymentId
+
+  lifecycle_event_hook_execution_id = event.LifecycleEventHookExecutionId
+
+  resp = codedeploy_client.put_lifecycle_event_hook_execution_status({
+    deployment_id: deployment_id,
+    lifecycle_event_hook_execution_id: lifecycle_event_hook_execution_id,
+    status: "Succeeded",
+  })
+end
 
 def get_available_eip()
 
