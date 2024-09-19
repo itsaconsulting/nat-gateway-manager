@@ -8,5 +8,5 @@ Resources:
         CurrentVersion: "CURRENT_VERSION"
         TargetVersion: "TARGET_VERSION"
 Hooks:
-  - BeforeAllowTraffic: "eip_update"
-  - AfterAllowTraffic: "eip_update"
+  - BeforeAllowTraffic: "LAMBDA_FUNCTION_NAME"
+  - AfterAllowTraffic: "LAMBDA_FUNCTION_NAME"
