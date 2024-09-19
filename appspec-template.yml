@@ -1,9 +1,9 @@
 version: 0.0 
-resources: 
+Resources:
   - LAMBDA_FUNCTION_NAME
-      type: AWS::Lambda::Function
-      properties:
-        name: "LAMBDA_FUNCTION_NAME"
-        alias: "LAMBDA_FUNCTION_ALIAS"
-        currentversion: "CURRENT_VERSION"
-        targetversion: "TARGET_VERSION"
+      Type: AWS::Lambda::Function
+      Properties:
+        Name: "LAMBDA_FUNCTION_NAME"
+        Alias: "LAMBDA_FUNCTION_ALIAS"
+        CurrentVersion: "CURRENT_VERSION"
+        TargetVersion: "TARGET_VERSION"
