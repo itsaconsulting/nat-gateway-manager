@@ -13,7 +13,7 @@ def lambda_handler(event:, context:)
   logger.info(event)
   event.to_a
 
-  unless event["DeploymentId"]?nil
+  unless event['DeploymentId'].nil?
     report_deployment_status(event)
   end
 
