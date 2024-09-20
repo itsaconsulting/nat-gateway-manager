@@ -13,9 +13,7 @@ def lambda_handler(event:, context:)
   logger.info(event)
   event.to_a
 
-  unless event['DeploymentId'].nil?
-    report_deployment_status(event)
-  end
+  report_deployment_status(event:) unless event['DeploymentId'].nil?
 
   # determine event type:  scale out, scale in
 
@@ -30,7 +28,7 @@ def lambda_handler(event:, context:)
 end
 
 
-def report_deployment_status(event)
+def report_deployment_status(event:)
 
   deployment_id = event["DeploymentId"]
 
