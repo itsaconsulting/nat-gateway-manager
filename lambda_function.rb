@@ -1,4 +1,5 @@
 require 'aws-sdk-ec2'
+require 'aws-sdk-codedeploy'
 require 'logger'
     
 $client = Aws::EC2::Client.new()
