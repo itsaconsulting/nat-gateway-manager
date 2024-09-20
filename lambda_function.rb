@@ -4,13 +4,13 @@ require 'logger'
     
 $client = Aws::EC2::Client.new()
 $codedeploy_client = Aws::CodeDeploy::Client.new()
+$logger = Logger.new($stdout)
  
 def lambda_handler(event:, context:)
-  logger = Logger.new($stdout)
-  logger.info('## ENVIRONMENT VARIABLES')
-  logger.info(ENV.to_a)
-  logger.info('## EVENT')
-  logger.info(event)
+  $logger.info('## ENVIRONMENT VARIABLES')
+  $logger.info(ENV.to_a)
+  $logger.info('## EVENT')
+  $logger.info(event)
   event.to_a
 
   report_deployment_status(event:) unless event['DeploymentId'].nil?
@@ -30,7 +30,7 @@ end
 
 def report_deployment_status(event:)
 
-  logger.info('## Reporting Success to CodeDeploy.')
+  $logger.info('## Reporting Success to CodeDeploy.')
   deployment_id = event["DeploymentId"]
 
   lifecycle_event_hook_execution_id = event["LifecycleEventHookExecutionId"]
