@@ -13,7 +13,7 @@ def lambda_handler(event:, context:)
   logger.info(event)
   event.to_a
 
-  unless event.DeploymentId?nil
+  unless event["DeploymentId"]?nil
     report_deployment_status(event)
   end
 
@@ -32,9 +32,9 @@ end
 
 def report_deployment_status(event)
 
-  deployment_id = event.DeploymentId
+  deployment_id = event["DeploymentId"]
 
-  lifecycle_event_hook_execution_id = event.LifecycleEventHookExecutionId
+  lifecycle_event_hook_execution_id = event["LifecycleEventHookExecutionId"]
 
   resp = codedeploy_client.put_lifecycle_event_hook_execution_status({
     deployment_id: deployment_id,
