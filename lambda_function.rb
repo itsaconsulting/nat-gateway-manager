@@ -30,6 +30,7 @@ end
 
 def report_deployment_status(event:)
 
+  logger.info('## Reporting Success to CodeDeploy.')
   deployment_id = event["DeploymentId"]
 
   lifecycle_event_hook_execution_id = event["LifecycleEventHookExecutionId"]
