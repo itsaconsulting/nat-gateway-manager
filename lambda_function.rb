@@ -37,7 +37,6 @@ def lambda_handler(event:, context:)
 
 end
 
-
 def report_deployment_status(event:)
 
   $logger.info('## Reporting Success to CodeDeploy.')
@@ -74,8 +73,6 @@ def get_instance_eip_assocation_id(ec2_instance_id:)
     end
   end
 end
-
-
 
 def associate_address(event:, eip_allocation_id:)
   $logger.info("Associating #{eip_allocation_id} to #{get_ec2_instance_id_from_event(event:)}")
