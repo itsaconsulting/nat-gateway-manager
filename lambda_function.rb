@@ -112,3 +112,4 @@ def get_ec2_instance_id_from_event(event:)
   end
 end
 
+
