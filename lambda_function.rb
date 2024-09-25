@@ -72,6 +72,7 @@ def get_instance_eip_assocation_id(ec2_instance_id:)
       return address[:association_id]
     end
   end
+  return 0 # EIP not associated with this instance
 end
 
 def associate_address(event:, eip_allocation_id:)
@@ -89,9 +90,12 @@ def disassociate_address(event:)
   $logger.info("Disassociating EIP from: #{get_ec2_instance_id_from_event(event:)}.")
   association_id = get_instance_eip_assocation_id(ec2_instance_id: get_ec2_instance_id_from_event(event:))
 
-  resp = $client.disassociate_address({
-    association_id: association_id,
-  })
+  # if there is a valid association_id, disassociate
+  if association_id > 0
+    resp = $client.disassociate_address({
+      association_id: association_id,
+    })
+  end
 end
 
 def disable_source_destination_check(ec2_instance_id:)
