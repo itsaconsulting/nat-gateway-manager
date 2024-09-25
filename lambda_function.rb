@@ -102,6 +102,14 @@ def get_ec2_instance_id_from_event(event:)
   end
 end
 
+def get_autoscaling_group_name_from_event(event:)
+  if event['detail']['AutoScalingGroupName'].nil?
+    return 1
+  else
+    return event['detail']['AutoScalingGroupName']
+  end
+end
+
 
 def lambda_handler(event:, context:)
   $logger.info('## ENVIRONMENT VARIABLES')
@@ -114,7 +122,7 @@ def lambda_handler(event:, context:)
 
   # on instance refresh, disassociate the EIP on the out-going instance
   if event['detail-type'] == "EC2 Auto Scaling Instance Refresh Started"
-    ec2_instance_id = get_active_ec2_instance_id_from_asg(event:, autoscaling_group_name:)
+    ec2_instance_id = get_active_ec2_instance_id_from_asg(event: event, autoscaling_group_name: get_autoscaling_group_name_from_event(event: event))
     $logger.info("Disassociating EIP from #{ec2_instance_id}")
     disassociate_address(ec2_instance_id: ec2_instance_id)
 #    remove_entry_from_route_table
@@ -123,7 +131,7 @@ def lambda_handler(event:, context:)
   # on instance refresh, associate the EIP on the incoming instance
   if event['detail-type'] == "EC2 Auto Scaling Instance Refresh Succeeded"
     # get the current active ec2 instance in the ASG (new instance)
-    ec2_instance_id = get_active_ec2_instance_id_from_asg(event:, autoscaling_group_name:)
+    ec2_instance_id = get_active_ec2_instance_id_from_asg(event: event, autoscaling_group_name: get_autoscaling_group_name_from_event(event: event))
     $logger.info("Associating EIP to #{ec2_instance_id}")
     # associate the EIP with this instance
     eip_allocation_id = get_available_eip_allocation_id
@@ -131,30 +139,30 @@ def lambda_handler(event:, context:)
       $logger.info("No free EIPs found.")
       exit 1
     end
-    associate_address(ec2_instance_id: get_active_ec2_instance_id_from_asg(event:, autoscaling_group_name:), eip_allocation_id: eip_allocation_id)
-    disable_source_destination_check(ec2_instance_id: get_active_ec2_instance_id_from_asg(event:, autoscaling_group_name:))
-#    add_entry_to_route_table(event:)
+    associate_address(ec2_instance_id: get_active_ec2_instance_id_from_asg(event: event, autoscaling_group_name: get_autoscaling_group_name_from_event(event: event)), eip_allocation_id: eip_allocation_id)
+    disable_source_destination_check(ec2_instance_id: get_active_ec2_instance_id_from_asg(event: event, autoscaling_group_name: get_autoscaling_group_name_from_event(event: event)))
+#    add_entry_to_route_table(event: event)
   end
 
 
 
   # on scale out, get eip, associate eip, disable source/dest check, update route table(s)
   if event['detail-type'] == "EC2 Instance Launch Successful"
-    $logger.info("Associating an EIP to instance #{get_ec2_instance_id_from_event(event:)}")
+    $logger.info("Associating an EIP to instance #{get_ec2_instance_id_from_event(event: event)}")
     eip_allocation_id = get_available_eip_allocation_id
     if eip_allocation_id == 1
       $logger.info("No free EIPs found.")
       exit 1
     end
     associate_address(ec2_instance_id: get_ec2_instance_id_from_event(event:), eip_allocation_id: eip_allocation_id)
-    disable_source_destination_check(ec2_instance_id: get_ec2_instance_id_from_event(event:))
-#    add_entry_to_route_table(event:)
+    disable_source_destination_check(ec2_instance_id: get_ec2_instance_id_from_event(event: event))
+#    add_entry_to_route_table(event: event)
   end
 
   # on scale in, disassociate eip, update route table(s)
   if event['detail-type'] == "EC2 Instance Terminate Successful"
-    $logger.info("Disassociating the EIP from instance #{get_ec2_instance_id_from_event(event:)}")
-    disassociate_address(ec2_instance_id: get_ec2_instance_id_from_event(event:))
+    $logger.info("Disassociating the EIP from instance #{get_ec2_instance_id_from_event(event: event)}")
+    disassociate_address(ec2_instance_id: get_ec2_instance_id_from_event(event: event))
 #    remove_entry_from_route_table
   end
 
