@@ -137,7 +137,7 @@ def lambda_handler(event:, context:)
     eip_allocation_id = get_available_eip_allocation_id
     if eip_allocation_id == 1
       $logger.info("No free EIPs found.")
-      exit 1
+      exit 0
     end
     associate_address(ec2_instance_id: get_active_ec2_instance_id_from_asg(event: event, autoscaling_group_name: get_autoscaling_group_name_from_event(event: event)), eip_allocation_id: eip_allocation_id)
     disable_source_destination_check(ec2_instance_id: get_active_ec2_instance_id_from_asg(event: event, autoscaling_group_name: get_autoscaling_group_name_from_event(event: event)))
