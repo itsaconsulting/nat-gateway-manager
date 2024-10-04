@@ -1,11 +1,24 @@
 # eip-update
 This is a Lambda function that will update AutoScaled EC2 instances with an EIP on event from EventBridge.
 
+**Use at your own risk!  If improperly configured or deployed, or misunderstood, this solution can restrict external access from all VPC resources.**
+
 This is part of a solution I am working on to replace NAT Gateway resources with AutoScaled EC2 instances.
 
 The intent is that one AutoScaling group would be deployed for each Availability Zone that resources are in.  Within each AutoScaling group, there would be a single EC2 instance that has been properly configured to serve the function of a NAT Gateway.  This can reduce costs to less than $5/month per AZ with a t4g.nano instance.  Down time should be rare and limited, depending on the stability of the Availability Zone and the EC2 instance.
 
-Deploy the Lambda function and provide an environment variable to the function that will contain a map of Availability Zones to ElasticIP and [private] Route Table ID.
+#### Deployment
+
+1. Create an AMI, based on the latest Amazon Linux 2023 AMI that is configured as described in [this Amazon article](https://docs.aws.amazon.com/vpc/latest/userguide/work-with-nat-instances.html).
+
+I have another project (coming soon) that I am working on that will provide the terraform to build this AMI and update it weekly for patching/security updates.
+
+2. Deploy an AutoScaling group in each Availability Zone / public subnet, with an EIP attached to the EC2 instance.
+
+If replacing a current NAT Gateway, be sure to test connectivity and swap the ElasticIP from the NAT Gateway to the EC2 instance in the AutoScaling group.
+
+3. Deploy the Lambda function and provide an environment variable to the function that will contain a map of Availability Zones to ElasticIP and [private] Route Table ID.
+
 ```
 elastic_ip_to_availability_zone_mapping = {"us-west-2a":{"elastic_ip":"x.x.x.x","route_table_id":"rtb-xxxxxxxxxxxx"},"us-west-2b":{"elastic_ip":"x.x.x.x","route_table_id":"rtb-xxxxxxxxxxxx"}}
 ```
@@ -51,5 +64,15 @@ resource "aws_lambda_function" "nat_gateway_update_lambda" {
       elastic_ip_to_availability_zone_mapping = jsonencode(local.elastic_ip_to_availability_zone_mapping)
     }
   }
+}
+```
+
+4. Create an EventBridge rule that includes the following event patterns, with a target of this Lambda function.  Include a list of ARNs of the autoscaling groups in the resources list.
+
+```
+{
+  "detail-type": ["EC2 Instance Launch Successful", "EC2 Instance Terminate Successful", "EC2 Auto Scaling Instance Refresh Started", "EC2 Auto Scaling Instance Refresh Succeeded"],
+  "resources": ["arn:aws:autoscaling:us-west-2:$aws_account_id:autoScalingGroup:$asg_id_of_some_sort_here:autoScalingGroupName/$autoscaling_group_name"],
+  "source": ["aws.autoscaling"]
 }
 ```
