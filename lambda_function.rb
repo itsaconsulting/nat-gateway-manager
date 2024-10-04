@@ -9,6 +9,20 @@ $ec2_client = Aws::EC2::Client.new()
 $codedeploy_client = Aws::CodeDeploy::Client.new()
 $logger = Logger.new($stdout)
 
+def report_deployment_status(event:)
+
+  $logger.info('## Reporting Success to CodeDeploy.')
+  deployment_id = event["DeploymentId"]
+
+  lifecycle_event_hook_execution_id = event["LifecycleEventHookExecutionId"]
+
+  resp = $codedeploy_client.put_lifecycle_event_hook_execution_status({
+    deployment_id: deployment_id,
+    lifecycle_event_hook_execution_id: lifecycle_event_hook_execution_id,
+    status: "Succeeded",
+  })
+end
+
 def get_active_ec2_instance_id_from_asg(autoscaling_group_name:)
   if $ec2_instance_id.nil?
     resp = $autoscaling_client.describe_auto_scaling_instances()
@@ -23,20 +37,6 @@ def get_active_ec2_instance_id_from_asg(autoscaling_group_name:)
     return $ec2_instance_id
   end
   return 1
-end
-
-def report_deployment_status(event:)
-
-  $logger.info('## Reporting Success to CodeDeploy.')
-  deployment_id = event["DeploymentId"]
-
-  lifecycle_event_hook_execution_id = event["LifecycleEventHookExecutionId"]
-
-  resp = $codedeploy_client.put_lifecycle_event_hook_execution_status({
-    deployment_id: deployment_id,
-    lifecycle_event_hook_execution_id: lifecycle_event_hook_execution_id,
-    status: "Succeeded",
-  })
 end
 
 def get_available_eip_allocation_id()
