@@ -200,7 +200,7 @@ def lambda_handler(event:, context:)
   #
   # if this is a call by CodeDeploy, report success (ideally, perform tests and report status)
   #
-  report_deployment_status(event:) unless event['DeploymentId'].nil?
+  report_deployment_status(event: event) unless event['DeploymentId'].nil?
 
   #
   # on instance refresh, disassociate the EIP on the out-going instance
@@ -240,7 +240,7 @@ def lambda_handler(event:, context:)
     if eip_allocation_id == 1
       $logger.info("No free EIPs found.")
     else
-      associate_address(ec2_instance_id: get_ec2_instance_id_from_event(event:), eip_allocation_id: eip_allocation_id)
+      associate_address(ec2_instance_id: get_ec2_instance_id_from_event(event: event), eip_allocation_id: eip_allocation_id)
       disable_source_destination_check(ec2_instance_id: get_ec2_instance_id_from_event(event: event))
       add_entry_to_route_table(event: event)
     end
