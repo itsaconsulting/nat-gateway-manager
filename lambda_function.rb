@@ -206,7 +206,7 @@ def lambda_handler(event:, context:)
   # on instance refresh, disassociate the EIP on the out-going instance
   #
   if event['detail-type'] == "EC2 Auto Scaling Instance Refresh Started"
-    ec2_instance_id = get_active_ec2_instance_id_from_asg(event: event, autoscaling_group_name: get_autoscaling_group_name_from_event(event: event))
+    ec2_instance_id = get_active_ec2_instance_id_from_asg(autoscaling_group_name: get_autoscaling_group_name_from_event(event: event))
     $logger.info("Disassociating EIP from #{ec2_instance_id}")
     disassociate_address(ec2_instance_id: ec2_instance_id)
     remove_entry_from_route_table(event: event)
