@@ -9,6 +9,8 @@ The intent is that one AutoScaling group would be deployed for each Availability
 
 #### Deployment
 
+*Note that there are a lot of IAM details that I have not yet provided here.*
+
 1. Create an AMI, based on the latest Amazon Linux 2023 AMI that is configured as described in [this Amazon article](https://docs.aws.amazon.com/vpc/latest/userguide/work-with-nat-instances.html).
 
 I have another project (coming soon) that I am working on that will provide the terraform to build this AMI and update it weekly for patching/security updates.
