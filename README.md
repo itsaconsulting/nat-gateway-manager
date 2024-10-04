@@ -69,6 +69,8 @@ resource "aws_lambda_function" "nat_gateway_update_lambda" {
 
 4. Create an EventBridge rule that includes the following event patterns, with a target of this Lambda function.  Include a list of ARNs of the autoscaling groups in the resources list.
 
+Note that this may not cover all required events.  I am still working through testing and validation.  If you've been to my [website](https://itsecureadmin.com/) lately and received a 502, it's because I'm testing in production.
+
 ```
 {
   "detail-type": ["EC2 Instance Launch Successful", "EC2 Instance Terminate Successful", "EC2 Auto Scaling Instance Refresh Started", "EC2 Auto Scaling Instance Refresh Succeeded"],
