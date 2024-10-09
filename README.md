@@ -1,4 +1,4 @@
-# eip-update
+# nat-gateway-manager
 This is a Lambda function that will update AutoScaled EC2 instances with an EIP on event from EventBridge.
 
 **Use at your own risk!  If improperly configured or deployed, or misunderstood, this solution can restrict external access from all VPC resources.**
@@ -48,7 +48,7 @@ locals {
 }
 ...
 resource "aws_lambda_function" "nat_gateway_update_lambda" {
-  function_name = "eip_update"
+  function_name = "nat_gateway_manager"
   role          = aws_iam_role.lambda_execution_role.arn
   handler       = "lambda_function.lambda_handler"
   timeout       = 15
