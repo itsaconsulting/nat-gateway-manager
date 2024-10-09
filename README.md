@@ -16,7 +16,7 @@ The intent is that one AutoScaling group would be deployed for each Availability
 
 I have another project (coming soon) that I am working on that will provide the terraform to build this AMI and update it weekly for patching/security updates.
 
-2. Deploy an AutoScaling group in each Availability Zone / public subnet, with an EIP attached to the EC2 instance.
+2. Deploy an AutoScaling group in each Availability Zone / public subnet where external access is needed, with an EIP attached to the EC2 instance.
 
 If replacing a current NAT Gateway, be sure to test connectivity and swap the ElasticIP from the NAT Gateway to the EC2 instance in the AutoScaling group.
 
