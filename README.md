@@ -7,6 +7,7 @@ This is part of a solution I am working on to replace NAT Gateway resources with
 
 The intent is that one AutoScaling group would be deployed for each Availability Zone that resources are in.  Within each AutoScaling group, there would be a single EC2 instance that has been properly configured to serve the function of a NAT Gateway.  This can reduce costs to less than $5/month per AZ with a t4g.nano instance.  Down time should be rare and limited, depending on the stability of the Availability Zone and the EC2 instance.
 
+
 #### Deployment
 
 *Note that there are a lot of IAM details that I have not yet provided here.*
@@ -73,9 +74,11 @@ resource "aws_lambda_function" "nat_gateway_update_lambda" {
 
 Note that this may not cover all required events.  I am still working through testing and validation.  If you've been to my [website](https://itsecureadmin.com/) lately and received a 502, it's because I'm testing in production.
 
+I've moved to only take action on the event for successful launch of an EC2 instance.  This event should indicate that the newly launched instance should be the gateway instance, so it covers all the bases.
+
 ```
 {
-  "detail-type": ["EC2 Instance Launch Successful", "EC2 Instance Terminate Successful", "EC2 Auto Scaling Instance Refresh Started", "EC2 Auto Scaling Instance Refresh Succeeded"],
+  "detail-type": ["EC2 Instance Launch Successful"],
   "resources": ["arn:aws:autoscaling:us-west-2:$aws_account_id:autoScalingGroup:$asg_id_of_some_sort_here:autoScalingGroupName/$autoscaling_group_name"],
   "source": ["aws.autoscaling"]
 }
