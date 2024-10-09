@@ -15,52 +15,22 @@ def report_deployment_status(event:)
   resp = $codedeploy_client.put_lifecycle_event_hook_execution_status({
     deployment_id: event['DeploymentId'],
     lifecycle_event_hook_execution_id: event["LifecycleEventHookExecutionId"],
-    status: "Succeeded",
+    status: 'Succeeded'
   })
-end
-
-def get_active_ec2_instance_id_from_asg(autoscaling_group_name:)
-  if $ec2_instance_id.nil?
-    resp = $autoscaling_client.describe_auto_scaling_instances()
-    resp.auto_scaling_instances.each do |auto_scaling_instance|
-      if auto_scaling_instance.auto_scaling_group_name == autoscaling_group_name
-        $ec2_instance_id = auto_scaling_instance.instance_id
-        $logger.info("Active AutoScaling Instance ID: #{$ec2_instance_id}")
-        return $ec2_instance_id
-      end
-    end
-  else
-    return $ec2_instance_id
-  end
 end
 
 def get_ec2_instance_associated_with_eip(elastic_ip:)
   resp = $ec2_client.describe_addresses({})
   resp['addresses'].each do |address|
-    if address[:public_ip] == elastic_ip
-      return address[:instance_id]
-    end
+    return address[:instance_id] if address[:public_ip] == elastic_ip
   end
   return 1 # no instance associated with this EIP
-end
-
-def get_available_eip_allocation_id()
-  resp = $ec2_client.describe_addresses({})
-  resp['addresses'].each do |address|
-    if address[:association_id].nil?
-      $logger.info("Found a free EIP,AllocationId: #{address[:public_ip]}, #{address[:allocation_id]}")
-      return address[:allocation_id]
-    end
-  end
-  return 1
 end
 
 def get_eip_allocation_id(elastic_ip:)
   resp = $ec2_client.describe_addresses({})
   resp['addresses'].each do |address|
-    if address[:public_ip] == elastic_ip
-      return address[:allocation_id]
-    end
+    return address[:allocation_id] if address[:public_ip] == elastic_ip
   end
   return 1
 end
@@ -82,7 +52,7 @@ def associate_address(ec2_instance_id:, eip_allocation_id:)
 
   association_id = $ec2_client.associate_address({
     allocation_id: eip_allocation_id,
-    instance_id: ec2_instance_id,
+    instance_id: ec2_instance_id
   })
 
   $logger.debug("Associated #{eip_allocation_id} to #{ec2_instance_id} with resulting assocation_id: #{association_id}.")
@@ -95,7 +65,7 @@ def disassociate_address(ec2_instance_id:)
   # if there is a valid association_id, disassociate - get_instance_eip_assocation_id returns 1 when not found
   unless association_id == 1
     resp = $ec2_client.disassociate_address({
-      association_id: association_id,
+      association_id: association_id
     })
   end
 end
@@ -105,17 +75,13 @@ def disable_source_destination_check(ec2_instance_id:)
   $ec2_client.modify_instance_attribute(
     instance_id: ec2_instance_id,
     source_dest_check: {
-      value: false,
+      value: false
     }
   )
 end
 
 def get_ec2_instance_id_from_event(event:)
-  if event['detail']['EC2InstanceId'].nil?
-    return get_active_ec2_instance_id_from_asg(autoscaling_group_name: get_autoscaling_group_name_from_event(event: event))
-  else
-    return event['detail']['EC2InstanceId']
-  end
+  return event['detail']['EC2InstanceId'] unless event['detail']['EC2InstanceId'].nil?
 end
 
 def get_availability_zone_from_event(event:)
@@ -126,45 +92,16 @@ def get_availability_zone_from_event(event:)
   end
 end
 
-def get_autoscaling_group_name_from_event(event:)
-  if event['detail']['AutoScalingGroupName'].nil?
-    return 1
-  else
-    return event['detail']['AutoScalingGroupName']
-  end
-end
-
-def get_route_table_id_for_ec2_instance(ec2_instance_id:)
-  resp = $ec2_client.describe_route_tables()
-  resp.route_tables.each do |route_table|
-    route_table.routes.each do |route|
-      if route.instance_id == ec2_instance_id
-        return route_table.route_table_id
-      end
-    end
-  end
-  return 0
-end
-
-def get_availability_zone_for_ec2_instance(ec2_instance_id:)
-  resp = $ec2_client.describe_instance_status({
-                                                instance_ids: [
-                                                  "#{ec2_instance_id}"
-                                                ],
-                                              })
-  return resp.instance_statuses[0].availability_zone
-end
-
 def add_entry_to_route_table(event:)
   $logger.debug('Adding entry to route table.')
 
   elastic_ip_to_availability_zone_mapping = JSON.parse(ENV['elastic_ip_to_availability_zone_mapping'])
 
   $ec2_client.create_route({
-                             destination_cidr_block: '0.0.0.0/0',
-                             instance_id: get_ec2_instance_id_from_event(event: event),
-                             route_table_id: elastic_ip_to_availability_zone_mapping[get_availability_zone_from_event(event: event)]['route_table_id']
-                           })
+    destination_cidr_block: '0.0.0.0/0',
+    instance_id: get_ec2_instance_id_from_event(event: event),
+    route_table_id: elastic_ip_to_availability_zone_mapping[get_availability_zone_from_event(event: event)]['route_table_id']
+  })
 end
 
 def get_route_table_id_for_availability_zone(event:)
@@ -183,21 +120,12 @@ def remove_entry_from_route_table(route_table_id:)
           $ec2_client.delete_route({
             destination_cidr_block: "0.0.0.0/0",
             route_table_id:  route_table.route_table_id
-                                   })
+          })
           break
         end
       end
     end
   end
-end
-
-#
-# get the ec2 instance id of the instance currently in possession of the eip
-#
-def get_ec2_instance_with_eip(event:)
-  elastic_ip_to_availability_zone_mapping = JSON.parse(ENV['elastic_ip_to_availability_zone_mapping'])
-  elastic_ip = elastic_ip_to_availability_zone_mapping[get_availability_zone_from_event(event: event)]['elastic_ip']
-  return get_ec2_instance_associated_with_eip(elastic_ip: elastic_ip)
 end
 
 def get_elastic_ip_for_availability_zone(event:)
@@ -225,8 +153,10 @@ def lambda_handler(event:, context:)
     $logger.debug("Associating an EIP to instance #{get_ec2_instance_id_from_event(event: event)}")
     elastic_ip = get_elastic_ip_for_availability_zone(event: event)
     disassociate_address(ec2_instance_id: ec2_instance_id) if get_ec2_instance_associated_with_eip(elastic_ip: elastic_ip) != 1
-    associate_address(ec2_instance_id: get_ec2_instance_id_from_event(event: event),
-                      eip_allocation_id: get_eip_allocation_id(elastic_ip: elastic_ip))
+    associate_address(
+      ec2_instance_id: get_ec2_instance_id_from_event(event: event),
+      eip_allocation_id: get_eip_allocation_id(elastic_ip: elastic_ip
+    ))
     disable_source_destination_check(ec2_instance_id: get_ec2_instance_id_from_event(event: event))
     remove_entry_from_route_table(route_table_id: get_route_table_id_for_availability_zone(event: event))
     add_entry_to_route_table(event: event)
