@@ -152,7 +152,7 @@ def lambda_handler(event:, context:)
   if event['detail-type'] == 'EC2 Instance Launch Successful'
     $logger.debug("Associating an EIP to instance #{get_ec2_instance_id_from_event(event: event)}")
     elastic_ip = get_elastic_ip_for_availability_zone(event: event)
-    disassociate_address(ec2_instance_id: ec2_instance_id) if get_ec2_instance_associated_with_eip(elastic_ip: elastic_ip) != 1
+    disassociate_address(ec2_instance_id: get_ec2_instance_associated_with_eip(elastic_ip: elastic_ip)) if get_ec2_instance_associated_with_eip(elastic_ip: elastic_ip) != 1
     associate_address(
       ec2_instance_id: get_ec2_instance_id_from_event(event: event),
       eip_allocation_id: get_eip_allocation_id(elastic_ip: elastic_ip
