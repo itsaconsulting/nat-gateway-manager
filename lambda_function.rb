@@ -155,8 +155,8 @@ def lambda_handler(event:, context:)
     disassociate_address(ec2_instance_id: get_ec2_instance_associated_with_eip(elastic_ip: elastic_ip)) if get_ec2_instance_associated_with_eip(elastic_ip: elastic_ip) != 1
     associate_address(
       ec2_instance_id: get_ec2_instance_id_from_event(event: event),
-      eip_allocation_id: get_eip_allocation_id(elastic_ip: elastic_ip
-    ))
+      eip_allocation_id: get_eip_allocation_id(elastic_ip: elastic_ip)
+    )
     disable_source_destination_check(ec2_instance_id: get_ec2_instance_id_from_event(event: event))
     remove_entry_from_route_table(route_table_id: get_route_table_id_for_availability_zone(event: event))
     add_entry_to_route_table(event: event)
